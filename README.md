@@ -6,7 +6,7 @@ package.json을 생성하여 프로젝트 정보를 담는다.
 package.json이 있는 디렉토리에서 npm install을 해주면 깔린다.
 
 
-###serve-static
+#serve-static
 특정 폴더의 파일들을 특정 패스로 접근할 수 있도록 만들어 준다.
 ```
 ProjectDiretory/public/index.html
@@ -30,7 +30,7 @@ use()메소드의 첫 번째 파라미터로 요청 패스를 지정하고, 두�
 express.static 함수에 제공되는 경로는 node 프로세스가 실행되는 디렉토리에 대해 상대적이다. Express 앱을 다른 디렉토리에서 실행하는 경우 제공하기 원하는 디렉토리의 절대 경로를 사용하는 것이 더 안전하다.
 
 
-###CookieParer
+#CookieParer
 
 error
 ==Most middleware (like cookieParser) is no longer bundled with Express and must be installed separately.==
@@ -57,7 +57,7 @@ router.route('/setCookie').get(function(req,res){
 })
 ```
 
-######Cookie 수신 못하던 오류
+#Cookie 수신 못하던 오류
 
 ```js
 //라우터 미들웨어 등록
@@ -65,7 +65,7 @@ app.use('/',router);
 ```
 이거를 밑에다 놔야하는데 라우팅 함수 위에 있어서 안되던거였다....
 
-###Session
+#Session
 
 ```
 $ npm intall express-session --save

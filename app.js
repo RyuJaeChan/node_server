@@ -111,6 +111,8 @@ router.route('/photo').get(function(req,res){
     instream.pipe(res);
 })
 
+
+
 router.route('/login').get(function(req,res){
     console.log('>> load : /login(get)')
     var instream = fs.createReadStream(__dirname+'/static/template/login.html')
@@ -204,7 +206,7 @@ app.use(errorHandler)
 
 http.createServer(app).listen(app.get('port'), function(){
     var dt = new Date();
-    console.log('['+ Date().toFormat('YYYY-MM-DD HH24:MI:SS')+'] Server start at '+app.get('port'));
+    console.log('['+dt.toFormat('YYYY-MM-DD HH24:MI:SS')+'] Server start at '+app.get('port'));
 
     
 })
