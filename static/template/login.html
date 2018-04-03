@@ -37,9 +37,9 @@
 			}
 
 			#cardbox {
-				width:90%;
+				width:20%;
 			}
-			
+
 			#iconImage {
 				display:inline;
 			}
@@ -73,6 +73,22 @@
 			#buttonContainer {
 				padding-top:0.6em;
 				text-align:right;
+			}
+			
+			@media screen and (min-width: 320px) and (max-width: 768px) {
+  				#cardbox {
+					width:90%;
+				}
+				
+				label[id=contentsText] {
+					display:none;
+				}
+			}
+			
+			@media screen and (min-width: 768px) and (max-width: 979px) {
+  				#cardbox {
+					width:80%;
+				}
 			}
 			
 		</style>

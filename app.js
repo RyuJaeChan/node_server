@@ -31,7 +31,7 @@ var client = mysql.createPool({     //데이터 베이스 연결 객체가 많�
 })
 
 var app = express();
-app.set('port', 3000);
+app.set('port', 80);
 
 
 /* 미들웨어 등록 */             
