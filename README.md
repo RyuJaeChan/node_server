@@ -123,3 +123,25 @@ router.route('/product').get(function(req,res){
     }
 })
 ```
+
+#MYSQL
+데이터베이스는 관계형 데이터베이스인 mysql을 사용한다.
+
+```
+$ npm install mysql --save
+```
+
+이전에 개발했던 안드로이드 서버는 `createConnection`으로 썼는데 이번에는 `createPool`로 한다. createConnection은 사용자가 close를 하기 전까지 커넥션이 계속 유지된다. `connectionPll`은
+한번 만든 연결 객체는 커넥션 풀에 넣어두고 다음 요청이 있을 때 다시 사용하게 하여 리소스 소모를 줄여준다.
+```js
+var client = mysql.createPool({     //데이터 베이스 연결 객체가 많이 만들어지는 것을 막고 한번 만든 연결을 다시 사요할 수있게
+    connectionLimit : 10,           //커넥션 풀에서 만들 수 있는 최대 연결 개수
+    host            : 'localhost',  //연결할 호스트 이름
+    port            : 3306,         //데이터베이스가 사용하는 포트
+    user            : 'root',       //데이터베이스 사용자 id
+    password        : 'qwe123',     //비밀번호
+    database        : 'test',       //데이터베이스 이름
+    debug           : 'false'       //처리 과정을 로그로 남길것인지.
+})
+```
+

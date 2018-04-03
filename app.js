@@ -7,17 +7,31 @@ var bodyParser = require('body-parser')
 ,   static  = require('serve-static')
 ,   errorHandler = require('errorhandler')
 ,   expressErrorHandler = require('express-error-handler')
-
 ,   expressSession = require('express-session')
 
-,   multer = require('multer')  //파일 업로드용 미들웨어
+,   multer  = require('multer')  //파일 업로드용 미들웨어
 ,   fs      = require('fs')
-,   cors   = require('cors')    //ajax 요청 시 CORS 지원
+,   cors    = require('cors')    //ajax 요청 시 CORS 지원
+
+,   mysql   = require('mysql')
+
+,   user    = require('./route/user')
+
 require('date-utils')
+
+
+var client = mysql.createPool({     //데이터 베이스 연결 객체가 많이 만들어지는 것을 막고 한번 만든 연결을 다시 사요할 수있게
+    connectionLimit : 10,           //커넥션 풀에서 만들 수 있는 최대 연결 개수
+    host            : 'localhost',  //연결할 호스트 이름
+    port            : 3306,         //데이터베이스가 사용하는 포트
+    user            : 'root',       //데이터베이스 사용자 id
+    password        : 'qwe123',     //비밀번호
+    database        : 'test',       //데이터베이스 이름
+    debug           : 'false'       //처리 과정을 로그로 남길것인지.
+})
 
 var app = express();
 app.set('port', 3000);
-
 
 
 /* 미들웨어 등록 */             
@@ -105,62 +119,22 @@ router.route('/photo').post(upload.array('photo', 1), function(req,res){
         console.dir(err.stack);
     }
 })
+
 router.route('/photo').get(function(req,res){
     console.log(">> load : /photo(get)")
     var instream = fs.createReadStream(__dirname + '/static/template/photo.html')
     instream.pipe(res);
 })
 
+router.route('/signup').get(user.signup_get)
 
+router.route('/signup').post(user.signup_post)
 
-router.route('/login').get(function(req,res){
-    console.log('>> load : /login(get)')
-    var instream = fs.createReadStream(__dirname+'/static/template/login.html')
-    instream.pipe(res);
-})
+router.route('/login').get(user.login_get)
 
-router.route('/login').post(function(req,res){
-    console.log('>> load : /login(post)')
-    
-    var paramId = req.body.id;
-    var paramPassword = req.body.password;
-    console.log('paramId : ' +paramId)
-    console.log('paramPassword : ' + paramPassword)
+router.route('/login').post(user.login_post)
 
-    if(req.session.user){
-        console.log('login status')
-        res.redirect('/product')
-    }
-    else{
-        req.session.user = {
-            id: paramId,
-            name:'name',
-            authorized:true
-        }
-    }
-	res.writeHead('200', {'Content-Type':'text/html;charset=utf8'});
-	res.write('<h1>Express 서버에서 응답한 결과입니다.</h1>');
-	res.write('<div><p>Param id : ' + paramId + '</p></div>');
-    res.write('<div><p>Param password : ' + paramPassword + '</p></div>');
-    res.write("<br><br><a href='/product'>상품 페이지로 이동</a>")
-	res.end();
-})
-
-router.route('/logout').get(function(req,res){
-    console.log(">> load : /logout(get)")
-    if(req.session.user){
-        console.log('logout process')
-        req.session.destroy(function(err){
-            if(err){throw err;}
-            console.log('   ... success!')
-            res.redirect('/login')
-        })
-    }
-    else{
-        console.log('you are not signed in.')
-        res.redirect('/login')
-    }
-})
+router.route('/logout').get(user.logout)
 
 router.route('/showCookie').get(function(req,res){
 	console.log('>> load : /showCookie');
@@ -190,23 +164,21 @@ router.route('/product').get(function(req,res){
     }
 })
 
-
-
 //라우터 미들웨어 등록
 app.use('/',router);    
 
+
+//Error handler
 var errorHandler = expressErrorHandler({
     static:{
         '404' : __dirname +'/static/template/404.html'
     }
 })
-//Error handler
 app.use(expressErrorHandler.httpError(404))
 app.use(errorHandler)
 
 http.createServer(app).listen(app.get('port'), function(){
     var dt = new Date();
     console.log('['+dt.toFormat('YYYY-MM-DD HH24:MI:SS')+'] Server start at '+app.get('port'));
-
-    
+    user.init(client)
 })
