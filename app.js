@@ -12,6 +12,7 @@ var bodyParser = require('body-parser')
 ,   multer  = require('multer')  //파일 업로드용 미들웨어
 ,   fs      = require('fs')
 ,   cors    = require('cors')    //ajax 요청 시 CORS 지원
+,   socketio= require('socket.io')
 
 ,   mysql   = require('mysql')
 
@@ -126,6 +127,13 @@ router.route('/photo').get(function(req,res){
     instream.pipe(res);
 })
 
+router.route('/chat').get(function(req,res){
+    console.log(">> load : /chat(get)")
+    var instream = fs.createReadStream(__dirname + '/static/template/chat.html')
+    instream.pipe(res);
+})
+
+
 router.route('/signup').get(user.signup_get)
 
 router.route('/signup').post(user.signup_post)
@@ -177,8 +185,18 @@ var errorHandler = expressErrorHandler({
 app.use(expressErrorHandler.httpError(404))
 app.use(errorHandler)
 
-http.createServer(app).listen(app.get('port'), function(){
+var server = http.createServer(app).listen(app.get('port'), function(){
     var dt = new Date();
     console.log('['+dt.toFormat('YYYY-MM-DD HH24:MI:SS')+'] Server start at '+app.get('port'));
     user.init(client)
+})
+
+var io = socketio.listen(server);
+console.log('ready for socketio request success')
+
+io.sockets.on('connection', function(socket){
+    console.log('connection info : ' + socket.request.connection._peername)
+
+    socket.remoteAddress = socket.request.connection._peername.address;
+    socket.remotePort = socket.request.connection._peername.port;
 })
