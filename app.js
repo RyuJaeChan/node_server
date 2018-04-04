@@ -32,7 +32,7 @@ var client = mysql.createPool({     //데이터 베이스 연결 객체가 많�
 })
 
 var app = express();
-app.set('port', 80);
+app.set('port', 3000);
 
 
 /* 미들웨어 등록 */             
@@ -161,7 +161,7 @@ router.route('/setCookie').get(function(req,res){
 })
 
 router.route('/product').get(function(req,res){
-    console.log('>> load : /product load')
+    console.log('>> load : /product')
     if(req.session.user){   //세션이 존재할 때 표시
         var instream = fs.createReadStream(__dirname+'/static/template/product.html')
         instream.pipe(res);
@@ -170,6 +170,12 @@ router.route('/product').get(function(req,res){
         var instream = fs.createReadStream(__dirname+'/static/template/login.html')
         instream.pipe(res);
     }
+})
+
+router.route('/').get(function(req,res){
+    console.log('>> load : /')
+    var instream = fs.createReadStream(__dirname+'/static/template/index.html')
+    instream.pipe(res);
 })
 
 //라우터 미들웨어 등록
@@ -195,8 +201,18 @@ var io = socketio.listen(server);
 console.log('ready for socketio request success')
 
 io.sockets.on('connection', function(socket){
-    console.log('connection info : ' + socket.request.connection._peername)
+    console.log('connection info : ' + socket.request._peername)
 
     socket.remoteAddress = socket.request.connection._peername.address;
     socket.remotePort = socket.request.connection._peername.port;
+
+    socket.on('message', function(message){
+        console.log('message event occur')
+        console.dir(message);
+        if(message.recepient == 'All'){
+            console.log('type = all')
+            io.sockets.emit('message', message)
+        }
+    })
+
 })

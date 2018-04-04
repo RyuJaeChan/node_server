@@ -30,6 +30,24 @@
                     connectToServer();
                 });
 
+                $("#sendButton").bind('click', function(event){
+                    println('sendButton Clicked!')
+
+                    var sender = $('#senderInput').val();
+                    var recepient = $('#recepientInput').val();
+                    var data = $('#dataInput').val();
+
+                    var output = {sender : sender, recepient : recepient, command : 'chat', type :'text', data : data};
+                    console.log('data to server : ' + JSON.stringify(output))
+
+                    if(socket == undefined){
+                        alert('서버에 연결되지 않았습니다.')
+                        return;
+                    }
+
+                    socket.emit('message', output);
+                })
+
             });
             
 			// 서버에 연결하는 함수 정의
@@ -40,7 +58,15 @@
                 socket = io.connect(url, options);
 
                 socket.on('connect', function() {
-                	println('웹소켓 서버에 연결되었습니다. : ' + url);
+                    println('웹소켓 서버에 연결되었습니다. : ' + url);
+                    
+                    socket.on('message', function(message){
+                        console.log(JSON.stringify(message))
+
+                        println('<p>수신 메시지 : '+ message.sender + ', ' + message.recepient + ', ' +message.command + ', ' + message.type + ', '+ message.data +'</p>')
+
+                    })
+
                 });
 
                 socket.on('disconnect', function() {
@@ -61,8 +87,24 @@
         <br>
         <div>
             <input type ="text" id = "hostInput" value = "localhost">
-            <input type ="text" id = "portInput" value = "80">
+            <input type ="text" id = "portInput" value = "3000">
             <input type ="button" id = "connectButton" value = "localhost">
+            <div>
+                <div>
+                    <span>보내는 사람 : </span>
+                    <input type ="text" id = "senderInput" value = "test01">
+                </div>
+                <div>
+                    <span>받는 사람 : </span>
+                    <input type ="text" id = "recepientInput" value = "All">
+                </div>
+                <div>
+                    <span>메시지 : </span>
+                    <input type ="text" id = "dataInput" value = "Hello~">
+                </div>
+                <br>
+                <input type ="button" id="sendButton" value = "Send">
+            </div>
         </div>
 
         <hr/>
