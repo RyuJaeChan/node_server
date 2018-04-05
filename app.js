@@ -2,6 +2,9 @@ var express = require('express')
 ,   http    = require('http')
 ,   path    = require('path')
 
+var config  = require('./config/config')
+
+
 var bodyParser = require('body-parser')
 ,   cookieParser = require('cookie-parser')
 ,   static  = require('serve-static')
@@ -15,6 +18,10 @@ var bodyParser = require('body-parser')
 ,   socketio= require('socket.io')
 
 ,   mysql   = require('mysql')
+
+,   passport= require('passport')
+,   kakaoStrategy = require('passport-kakao').Strategy
+
 
 ,   user    = require('./route/user')
 
@@ -32,8 +39,9 @@ var client = mysql.createPool({     //데이터 베이스 연결 객체가 많�
 })
 
 var app = express();
-app.set('port', 3000);
+app.set('port', config.server_port);
 
+app.set('database', client)
 
 /* 미들웨어 등록 */             
 //정적파일 연결
@@ -53,6 +61,16 @@ app.use(expressSession({
 }));
 //ajax로 요청 시 CORS(다중 서버 접속) 지원
 app.use(cors());
+
+//===== Passport 사용 설정 =====//
+app.use(passport.initialize());
+app.use(passport.session());
+
+var configPassport = require('./config/passport');
+configPassport(app, passport);
+
+
+
 
 //multer 미들웨어 사용 : 순서 body-parser -> multer -> router
 var storage = multer.diskStorage({
@@ -133,6 +151,13 @@ router.route('/chat').get(function(req,res){
     instream.pipe(res);
 })
 
+router.route('/chat').post(function(req,res){
+    console.log(">> load : /chat(get)")
+    var instream = fs.createReadStream(__dirname + '/static/template/chat.html')
+    instream.pipe(res);
+})
+
+
 
 router.route('/signup').get(user.signup_get)
 
@@ -140,9 +165,35 @@ router.route('/signup').post(user.signup_post)
 
 router.route('/login').get(user.login_get)
 
-router.route('/login').post(user.login_post)
+//router.route('/login').post(user.login_post)
+app.post('/login',
+    passport.authenticate('local-login', {
+        successRedirect : '/product',
+        failureRedirect : '/login'
+    })
+)
 
-router.route('/logout').get(user.logout)
+
+app.get('/oauth/kakao',
+    passport.authenticate('kakao')
+)
+
+app.get('/oauth/kakao/callback',
+    passport.authenticate('kakao', {
+        successRedirect : '/product',
+        failureRedirect : '/login'
+    })
+)
+
+
+router.route('/logout').get(function(req, res){
+    console.log('>> load : /logout');
+  
+    req.logout();
+    res.redirect('/login')
+})
+
+//router.route('/logout').get(user.logout)
 
 router.route('/showCookie').get(function(req,res){
 	console.log('>> load : /showCookie');
@@ -162,6 +213,7 @@ router.route('/setCookie').get(function(req,res){
 
 router.route('/product').get(function(req,res){
     console.log('>> load : /product')
+    /**
     if(req.session.user){   //세션이 존재할 때 표시
         var instream = fs.createReadStream(__dirname+'/static/template/product.html')
         instream.pipe(res);
@@ -170,6 +222,20 @@ router.route('/product').get(function(req,res){
         var instream = fs.createReadStream(__dirname+'/static/template/login.html')
         instream.pipe(res);
     }
+     */
+
+    var instream = fs.createReadStream(__dirname+'/static/template/product.html')
+    instream.pipe(res);
+
+    if(req.isAuthenticated()){
+        console.log('인증됨')
+    }
+    else{
+        console.log('인증안됨')
+    }
+    
+
+
 })
 
 router.route('/').get(function(req,res){
